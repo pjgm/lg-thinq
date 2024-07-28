@@ -9,9 +9,9 @@ public class AuthenticationFlowService(Domains domains)
 {
     private Domains Domains { get; } = domains;
 
-    private readonly SpxHttpClient _spxClient = new(new HttpClient(), domains.SpxUri);
-    private readonly EmpTermsHttpClient _empTermsClient = new(new HttpClient(), domains.EmpTermsUri);
-    private readonly EmpOAuthHttpClient _empOAuthClient = new(new HttpClient());
+    private readonly SpxService _spxClient = new(new HttpClient(), domains.SpxUri);
+    private readonly EmpTermsService _empTermsClient = new(new HttpClient(), domains.EmpTermsUri);
+    private readonly EmpOAuthService _empOAuthClient = new(new HttpClient());
 
     public async Task<Session> LoginFlow(UserConfig userConfig)
     {
@@ -36,7 +36,7 @@ public class AuthenticationFlowService(Domains domains)
     {
         var httpClient = new HttpClient();
         var baseUri = new Uri(authorizationServerBaseAddress);
-        var authorizationServerHttpClient = new AuthorizationServerHttpClient(httpClient, baseUri);
+        var authorizationServerHttpClient = new AuthorizationServerService(httpClient, baseUri);
 
         var tokenResponse = await authorizationServerHttpClient
             .GetOAuthToken(code);

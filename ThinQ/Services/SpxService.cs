@@ -1,16 +1,16 @@
 ﻿using ThinQ.Extensions;
 using ThinQ.Models;
 
-namespace ThinQ.HttpClients;
+namespace ThinQ.Services;
 
-internal class SpxHttpClient
+internal class SpxService
 {
     private const string PreLoginUriPath = "preLogin";
     private const string SecretOAuthKeyUriPath = "searchKey?key_name=OAUTH_SECRETKEY&sever_type=OP";
 
     private readonly HttpClient _httpClient;
 
-    public SpxHttpClient(HttpClient httpClient, Uri spxBaseAddress)
+    public SpxService(HttpClient httpClient, Uri spxBaseAddress)
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = spxBaseAddress;

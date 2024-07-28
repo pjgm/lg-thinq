@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Headers;
+using System.Text.Json;
 using ThinQ.Extensions;
 using ThinQ.Models;
 using ThinQ.SessionManagement;
@@ -150,4 +151,45 @@ public class ThinQClient
 
         await _httpClient.SendAsync(requestMessage);
     }
+}
+
+public static class ThinQHttpRequestHeadersExtensions
+{
+    public static void SetThinQv2ApiHeadersWithAuth(this HttpRequestHeaders headers, string countryCode, string languageCode, string clientId, string accessToken, string userNo) =>
+        headers.AddRange(GetAuthorizedThinQv2Headers(countryCode, languageCode, clientId, accessToken, userNo));
+
+    public static void SetThinQv2ApiHeaders(this HttpRequestHeaders headers, string countryCode, string languageCode, string clientId) =>
+        headers.AddRange(GetThinQv2Headers(countryCode, languageCode, clientId));
+    public static IEnumerable<(string, string)> GetAuthorizedThinQv2Headers(
+        string countryCode,
+        string languageCode,
+        string clientId,
+        string accessToken,
+        string userNo)
+    {
+        var apiHeaders = GetThinQv2Headers(countryCode, languageCode, clientId).ToList();
+        apiHeaders.Add(("Authorization", $"Bearer {accessToken}"));
+        apiHeaders.Add(("x-emp-token", accessToken));
+        apiHeaders.Add(("x-user-no", userNo));
+        apiHeaders.Add(("country_code", countryCode));
+        apiHeaders.Add(("language_code", languageCode));
+        return apiHeaders;
+    }
+
+    public static IEnumerable<(string, string)> GetThinQv2Headers(string countryCode, string languageCode, string clientId)
+        => new List<(string, string)>
+        {
+            ("client_id", clientId),
+            ("x-client-id", clientId),
+            ("x-message-id", MessageId.Generate()),
+            ("x-api-key", "VGhpblEyLjAgU0VSVklDRQ=="),
+            ("x-service-code", "SVC202"),
+            ("x-service-phase", "OP"),
+            ("x-thinq-app-level", "PRD"),
+            ("x-thinq-app-os", "ANDROID"),
+            ("x-thinq-app-type", "NUTS"),
+            ("x-thinq-app-ver", "3.0.1700"),
+            ("x-country-code", countryCode),
+            ("x-language-code", languageCode)
+        };
 }

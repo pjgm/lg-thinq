@@ -1,4 +1,5 @@
-﻿using ThinQ.SessionManagement;
+﻿using ThinQ.Services;
+using ThinQ.SessionManagement;
 
 namespace ThinQ.HttpClients;
 
@@ -9,7 +10,7 @@ internal class AuthenticationMessageHandler(Session session) : DelegatingHandler
         CancellationToken cancellationToken)
     {
         var response = await base.SendAsync(request, cancellationToken);
-        var authClient = new AuthorizationServerHttpClient(new HttpClient(), new Uri(Uri.UnescapeDataString(session.Oauth2.oauth2_backend_url)));
+        var authClient = new AuthorizationServerService(new HttpClient(), new Uri(Uri.UnescapeDataString(session.Oauth2.oauth2_backend_url)));
 
         if (response.IsSuccessStatusCode)
         {
