@@ -1,5 +1,4 @@
 ﻿using ThinQ.Configuration;
-using ThinQ.HttpClients;
 using ThinQ.Models;
 using ThinQ.SessionManagement;
 

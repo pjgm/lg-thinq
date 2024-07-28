@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using ThinQ.HttpClients;
 
 namespace ThinQ.Extensions;
 

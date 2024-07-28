@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Text.Json;
 using ThinQ.Extensions;
 using ThinQ.Models;
@@ -16,167 +17,115 @@ public class ThinQClient
     private const string RegisterIoTCertificatePath = "service/users/client/certificate";
 
     private readonly HttpClient _httpClient;
-    private readonly Session _session;
 
     public ThinQClient(Session session)
     {
         _httpClient = new HttpClient(new AuthenticationMessageHandler(session));
-        _session = session;
-        _httpClient.BaseAddress = _session.ThinQUri;
+        _httpClient.BaseAddress = session.ThinQUri;
+        _httpClient.DefaultRequestHeaders.SetThinQv2ApiHeadersWithAuth(session);
     }
 
     public async Task<GetDevicesResponse> GetDevices()
     {
-        var requestMessage = new HttpRequestMessage(HttpMethod.Get, DashboardPath);
-
-        requestMessage.Headers.SetThinQv2ApiHeadersWithAuth(
-            _session.CountryCode,
-            _session.LanguageCode,
-            _session.ClientId,
-            _session.AccessToken,
-            _session.UserNo);
-
-        var response = await _httpClient.SendAsync(requestMessage);
+        var response = await _httpClient.GetAsync(DashboardPath);
 
         return await response.ReadContentFromJsonOrThrowAsync<GetDevicesResponse>();
     }
 
     public async Task<RouteResponse> GetRoute()
     {
-        var requestMessage = new HttpRequestMessage(HttpMethod.Get, RouteUri);
-
-        requestMessage.Headers.SetThinQv2ApiHeadersWithAuth(
-            _session.CountryCode,
-            _session.LanguageCode,
-            _session.ClientId,
-            _session.AccessToken,
-            _session.UserNo);
-
-        var response = await _httpClient.SendAsync(requestMessage);
+        var response = await _httpClient.GetAsync(RouteUri);
 
         return await response.ReadContentFromJsonOrThrowAsync<RouteResponse>();
     }
 
     public async Task<string> RegisterDevice()
     {
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, RegisterDevicePath);
-
-        requestMessage.Headers.SetThinQv2ApiHeadersWithAuth(
-            _session.CountryCode,
-            _session.LanguageCode,
-            _session.ClientId,
-            _session.AccessToken,
-            _session.UserNo);
-
-        var response = await _httpClient.SendAsync(requestMessage);
+        var response = await _httpClient.PostAsync(RegisterDevicePath, null);
 
         return await response.Content.ReadAsStringAsync();
     }
 
     public async Task<RegisterIoTCertificateResponse> RegisterIotCertificate(string csr)
     {
-        var httpContent = new StringContent(JsonSerializer.Serialize(new Dictionary<string, string>
-        {
-            { "csr", csr },
-        }),null, "application/json");
+        var httpContent = new StringContent(JsonSerializer.Serialize(
+            new Dictionary<string, string>
+            {
+                { "csr", csr },
+            }), null, MediaTypeNames.Application.Json);
 
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, RegisterIoTCertificatePath)
-        {
-            Content = httpContent
-        };
-
-        requestMessage.Headers.SetThinQv2ApiHeadersWithAuth(
-            _session.CountryCode,
-            _session.LanguageCode,
-            _session.ClientId,
-            _session.AccessToken,
-            _session.UserNo);;
-
-        var response = await _httpClient.SendAsync(requestMessage);
+        var response = await _httpClient.PostAsync(RegisterIoTCertificatePath, httpContent);
 
         return await response.ReadContentFromJsonOrThrowAsync<RegisterIoTCertificateResponse>();
     }
 
-
     public async Task TurnOnAc(string deviceId)
     {
-        var body = new Dictionary<string, string>
-        {
-            { "command", "Operation" },
-            { "dataKey", "airState.operation" },
-            { "dataValue", "1" },
-            { "ctrlKey", "basicCtrl" }
-        };
+        var httpContent = BuildCommandHttpContent(OperationDataKeyPair.AcOn);
 
-        var httpContent = new StringContent(JsonSerializer.Serialize(body), null, "application/json");
-
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, string.Format(ControlDevicePath, deviceId))
-        {
-            Content = httpContent,
-        };
-
-        requestMessage.Headers.SetThinQv2ApiHeadersWithAuth(
-            _session.CountryCode,
-            _session.LanguageCode,
-            _session.ClientId,
-            _session.AccessToken,
-            _session.UserNo);
-
-        await _httpClient.SendAsync(requestMessage);
+        await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
     }
 
     public async Task TurnOffAc(string deviceId)
     {
+        var httpContent = BuildCommandHttpContent(OperationDataKeyPair.AcOff);
+
+        await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
+    }
+
+    public async Task SetTemperature(string deviceId, int temperature)
+    {
+        var httpContent = BuildCommandHttpContent(OperationDataKeyPair.AcTemperature(temperature));
+
+        await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
+    }
+
+    private HttpContent BuildCommandHttpContent((string DataKey, string DataValue) dataKeyPair)
+    {
         var body = new Dictionary<string, string>
         {
             { "command", "Operation" },
-            { "dataKey", "airState.operation" },
-            { "dataValue", "0" },
-            { "ctrlKey", "basicCtrl" }
+            { "ctrlKey", "basicCtrl" },
+            { "dataKey", dataKeyPair.DataKey },
+            { "dataValue", dataKeyPair.DataValue }
         };
 
-        var httpContent = new StringContent(JsonSerializer.Serialize(body), null, "application/json");
-
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, string.Format(ControlDevicePath, deviceId))
-        {
-            Content = httpContent,
-        };
-
-        requestMessage.Headers.SetThinQv2ApiHeadersWithAuth(
-            _session.CountryCode,
-            _session.LanguageCode,
-            _session.ClientId,
-            _session.AccessToken,
-            _session.UserNo);
-
-        await _httpClient.SendAsync(requestMessage);
+        return new StringContent(JsonSerializer.Serialize(body), null, MediaTypeNames.Application.Json);
     }
+}
+
+public static class OperationDataKeyPair
+{
+    private const string AcOperationDataKey = "airState.operation";
+    private const string AcTemperatureDataKey = "airState.tempState.target";
+
+    public static (string DataKey, string DataValue) AcOff => (AcOperationDataKey, "0");
+    public static (string DataKey, string DataValue) AcOn => (AcOperationDataKey, "1");
+    public static (string DataKey, string DataValue) AcTemperature(int temp) => (AcTemperatureDataKey, temp.ToString());
 }
 
 public static class ThinQHttpRequestHeadersExtensions
 {
-    public static void SetThinQv2ApiHeadersWithAuth(this HttpRequestHeaders headers, string countryCode, string languageCode, string clientId, string accessToken, string userNo) =>
-        headers.AddRange(GetAuthorizedThinQv2Headers(countryCode, languageCode, clientId, accessToken, userNo));
+    public static void SetThinQv2ApiHeadersWithAuth(this HttpRequestHeaders headers, Session session) =>
+        headers.AddRange(GetAuthorizedThinQv2Headers(session));
 
-    public static void SetThinQv2ApiHeaders(this HttpRequestHeaders headers, string countryCode, string languageCode, string clientId) =>
+    public static void SetThinQv2ApiHeaders(this HttpRequestHeaders headers, string countryCode, string languageCode,
+        string clientId) =>
         headers.AddRange(GetThinQv2Headers(countryCode, languageCode, clientId));
-    public static IEnumerable<(string, string)> GetAuthorizedThinQv2Headers(
-        string countryCode,
-        string languageCode,
-        string clientId,
-        string accessToken,
-        string userNo)
+
+    private static IEnumerable<(string, string)> GetAuthorizedThinQv2Headers(Session session)
     {
-        var apiHeaders = GetThinQv2Headers(countryCode, languageCode, clientId).ToList();
-        apiHeaders.Add(("Authorization", $"Bearer {accessToken}"));
-        apiHeaders.Add(("x-emp-token", accessToken));
-        apiHeaders.Add(("x-user-no", userNo));
-        apiHeaders.Add(("country_code", countryCode));
-        apiHeaders.Add(("language_code", languageCode));
+        var apiHeaders = GetThinQv2Headers(session.ClientId, session.CountryCode, session.LanguageCode).ToList();
+        apiHeaders.Add(("Authorization", $"Bearer {session.AccessToken}"));
+        apiHeaders.Add(("x-emp-token", session.AccessToken));
+        apiHeaders.Add(("x-user-no", session.UserNo));
+        apiHeaders.Add(("country_code", session.CountryCode));
+        apiHeaders.Add(("language_code", session.LanguageCode));
         return apiHeaders;
     }
 
-    public static IEnumerable<(string, string)> GetThinQv2Headers(string countryCode, string languageCode, string clientId)
+    private static IEnumerable<(string, string)> GetThinQv2Headers(string clientId, string countryCode,
+        string languageCode)
         => new List<(string, string)>
         {
             ("client_id", clientId),

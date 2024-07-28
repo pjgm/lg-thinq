@@ -24,7 +24,7 @@ var selectedDeviceId = devices.result.item.First(x => x.alias == deviceAlias);
 var action = AnsiConsole.Prompt(
     new SelectionPrompt<string>()
         .Title($"Operation to execute on {deviceAlias}")
-        .AddChoices(["Turn on", "Turn off"]));
+        .AddChoices(["Turn on", "Turn off", "Set temperature"]));
 
 switch (action)
 {
@@ -33,6 +33,10 @@ switch (action)
         break;
     case "Turn off":
         await thinQClient.TurnOffAc(selectedDeviceId.deviceId);
+        break;
+    case "Set temperature":
+        var temp = AnsiConsole.Ask<int>("Enter the desired temperature:");
+        await thinQClient.SetTemperature(selectedDeviceId.deviceId, temp);
         break;
 }
 
