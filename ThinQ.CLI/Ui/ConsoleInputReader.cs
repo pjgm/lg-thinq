@@ -1,37 +1,15 @@
 ﻿using Spectre.Console;
-using ThinQ.CLI.Configuration;
+using ThinQ.Configuration;
 
-namespace ThinQ.CLI.Ui;
+namespace ThinQ.Cli.Ui;
 
-public static class ConsoleInputReader
+public class ConsoleInputReader : IUserConfigReader
 {
-    public static UserConfig ReadUserConfig(Guid clientId)
-    {
-        var username = ReadUsername();
-        var password = ReadPassword();
-        var countryCode = ReadCountryCode();
-        var languageCode = ReadLanguageCode();
+    public string ReadUsername() => AnsiConsole.Ask<string>("Enter your LG account [green]username[/]:");
 
-        return new UserConfig(username, password, languageCode, countryCode, clientId.ToString());
-    }
+    public string ReadPassword() => AnsiConsole.Ask<string>("Enter your LG account [red]password[/]:");
 
-    public static string ReadUsername()
-    {
-        return AnsiConsole.Ask<string>("Enter your LG account [green]username[/]:");
-    }
+    public string ReadCountryCode() => AnsiConsole.Ask<string>("Enter your LG account [yellow]country code[/]:");
 
-    public static string ReadPassword()
-    {
-        return AnsiConsole.Ask<string>("Enter your LG account [red]password[/]:");
-    }
-
-    public static string ReadCountryCode()
-    {
-        return AnsiConsole.Ask<string>("Enter your LG account [yellow]country code[/]:");
-    }
-
-    public static string ReadLanguageCode()
-    {
-        return AnsiConsole.Ask<string>("Enter your LG account [yellow]language code[/]:");
-    }
+    public string ReadLanguageCode() => AnsiConsole.Ask<string>("Enter your LG account [yellow]language code[/]:");
 }

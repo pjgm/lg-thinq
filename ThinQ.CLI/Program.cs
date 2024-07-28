@@ -1,15 +1,17 @@
 ﻿using Spectre.Console;
-using ThinQ.CLI.HttpClients;
-using ThinQ.CLI.Mqtt;
-using ThinQ.CLI.SessionManagement;
+using ThinQ.Cli.Ui;
+using ThinQ.HttpClients;
+using ThinQ.Mqtt;
+using ThinQ.SessionManagement;
 
-var session = await SessionManager.GetOrCreate();
+var sessionManager = new SessionManager(new ConsoleInputReader());
+var session = await sessionManager.GetOrCreate();
 
 var thinQClient = new ThinQClient(session);
 
 var devices = await thinQClient.GetDevices();
 
-var mqttManager = new MqttManager(thinQClient, session.ClientId);
+var mqttManager = new MqttManager(thinQClient, new ConsoleOutputWriter(), session.ClientId);
 await mqttManager.Connect();
 
 var deviceAlias = AnsiConsole.Prompt(
