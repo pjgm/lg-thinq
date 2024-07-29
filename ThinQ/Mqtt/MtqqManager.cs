@@ -1,6 +1,7 @@
 ﻿using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.Json;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Packets;
@@ -58,9 +59,10 @@ public class MqttManager(ThinQClient thinQClient, IMqttOutputWriter writer, stri
 
     private Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs args)
     {
-        var payload = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
+        var jsonString = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
+        var formattedJson = JsonSerializer.Serialize(JsonDocument.Parse(jsonString), new JsonSerializerOptions { WriteIndented = true });
 
-        writer.WriteMessageReceived(payload);
+        writer.WriteMessageReceived(formattedJson);
 
         return Task.CompletedTask;
     }

@@ -73,9 +73,44 @@ public class ThinQClient
         await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
     }
 
+    public async Task EnableJetMode(string deviceId)
+    {
+        var httpContent = BuildCommandHttpContent(OperationDataKeyPair.AcJetModeOn);
+
+        await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
+    }
+
+    public async Task DisableJetMode(string deviceId)
+    {
+        var httpContent = BuildCommandHttpContent(OperationDataKeyPair.AcJetModeOff);
+
+        await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
+    }
+
     public async Task SetTemperature(string deviceId, int temperature)
     {
         var httpContent = BuildCommandHttpContent(OperationDataKeyPair.AcTemperature(temperature));
+
+        await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
+    }
+
+    public async Task SetVerticalStep(string deviceId, VerticalStep step)
+    {
+        var httpContent = BuildCommandHttpContent(OperationDataKeyPair.SetVerticalStep(step));
+
+        await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
+    }
+
+    public async Task SetHorizontalStep(string deviceId, HorizontalStep step)
+    {
+        var httpContent = BuildCommandHttpContent(OperationDataKeyPair.SetHorizontalStep(step));
+
+        await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
+    }
+
+    public async Task SetFanSpeed(string deviceId, FanSpeed speed)
+    {
+        var httpContent = BuildCommandHttpContent(OperationDataKeyPair.SetFanSpeed(speed));
 
         await _httpClient.PostAsync(string.Format(ControlDevicePath, deviceId), httpContent);
     }
@@ -98,10 +133,53 @@ public static class OperationDataKeyPair
 {
     private const string AcOperationDataKey = "airState.operation";
     private const string AcTemperatureDataKey = "airState.tempState.target";
+    private const string AcJetModeDataKey = "airState.wMode.jet";
+    private const string AcFanSpeed = "airState.windStrength";
+    private const string AcVerticalStep = "airState.wDir.vStep";
+    private const string AcHorizontalStep = "airState.wDir.hStep";
 
     public static (string DataKey, string DataValue) AcOff => (AcOperationDataKey, "0");
     public static (string DataKey, string DataValue) AcOn => (AcOperationDataKey, "1");
+    public static (string DataKey, string DataValue) AcJetModeOff => (AcJetModeDataKey, "0");
+    public static (string DataKey, string DataValue) AcJetModeOn => (AcJetModeDataKey, "1");
     public static (string DataKey, string DataValue) AcTemperature(int temp) => (AcTemperatureDataKey, temp.ToString());
+    public static (string DataKey, string DataValue) SetFanSpeed(FanSpeed speed) => (AcFanSpeed, speed.ToString("D"));
+    public static (string DataKey, string DataValue) SetVerticalStep(VerticalStep step) => (AcVerticalStep, step.ToString("D"));
+    public static (string DataKey, string DataValue) SetHorizontalStep(HorizontalStep step) => (AcHorizontalStep, step.ToString("D"));
+
+}
+
+public enum VerticalStep
+{
+    Off,
+    Highest,
+    UpperHigh,
+    LowerHigh,
+    UpperLow,
+    LowerLow,
+    Lowest,
+    Swing = 100
+}
+
+public enum HorizontalStep
+{
+    Off,
+    Left,
+    CenterLeft,
+    Center,
+    CenterRight,
+    Right,
+    LeftHalf = 13,
+    RightHalf = 35,
+    Swing = 100
+}
+
+public enum FanSpeed
+{
+    Low = 2,
+    Medium = 4,
+    High = 6,
+    Auto = 8
 }
 
 public static class ThinQHttpRequestHeadersExtensions
