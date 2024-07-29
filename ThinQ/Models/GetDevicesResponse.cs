@@ -1,4 +1,6 @@
-﻿namespace ThinQ.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace ThinQ.Models;
 
 
 public class GetDevicesResponse
@@ -99,8 +101,11 @@ public class Snapshot
     public double airState_quality_sensorMon { get; set; }
     public double airState_memory_query { get; set; }
     public double airState_quality_odor { get; set; }
+
+    [JsonPropertyName("airState.tempState.target")]
     public double airState_tempState_target { get; set; }
     public double airState_miscFuncState_autoDryRemainTime { get; set; }
+    [JsonPropertyName("airState.operation")]
     public double airState_operation { get; set; }
     public double airState_airCare_lightingState_moodOnOff { get; set; }
     public double airState_wMode_jet { get; set; }
@@ -109,6 +114,8 @@ public class Snapshot
     public double airState_powerSave_basic { get; set; }
     public FwUpgradeInfo fwUpgradeInfo { get; set; }
     //public Static static { get; set; }
+
+    [JsonPropertyName("airState.tempState.current")]
     public double airState_tempState_current { get; set; }
     public double airState_miscFuncState_extraOp { get; set; }
     public double airState_reservation_sleepTime { get; set; }

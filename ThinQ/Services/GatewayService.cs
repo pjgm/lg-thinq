@@ -1,6 +1,5 @@
 ﻿using ThinQ.Configuration;
 using ThinQ.Extensions;
-using ThinQ.HttpClients;
 using ThinQ.Models;
 
 namespace ThinQ.Services;

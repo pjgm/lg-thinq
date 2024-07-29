@@ -7,7 +7,6 @@ using MQTTnet.Client;
 using MQTTnet.Packets;
 using Org.BouncyCastle.Crypto;
 using ThinQ.Extensions;
-using ThinQ.HttpClients;
 using ThinQ.Models;
 
 namespace ThinQ.Mqtt;

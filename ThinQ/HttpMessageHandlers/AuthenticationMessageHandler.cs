@@ -1,7 +1,7 @@
 ﻿using ThinQ.Services;
 using ThinQ.SessionManagement;
 
-namespace ThinQ.HttpClients;
+namespace ThinQ.HttpMessageHandlers;
 
 internal class AuthenticationMessageHandler(Session session) : DelegatingHandler(new HttpClientHandler())
 {
