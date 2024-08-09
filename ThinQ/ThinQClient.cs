@@ -88,7 +88,7 @@ public static class ThinQHttpRequestHeadersExtensions
 
     public static void SetThinQv2ApiHeaders(this HttpRequestHeaders headers, string countryCode, string languageCode,
         string clientId) =>
-        headers.AddRange(GetThinQv2Headers(countryCode, languageCode, clientId));
+        headers.AddRange(GetThinQv2Headers(clientId, countryCode, languageCode));
 
     private static IEnumerable<(string, string)> GetAuthorizedThinQv2Headers(Session session)
     {
