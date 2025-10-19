@@ -2,8 +2,6 @@
 
 public interface IUserConfigReader
 {
-    string ReadUsername();
-    string ReadPassword();
+    string ReadPersonalAccessToken();
     string ReadCountryCode();
-    string ReadLanguageCode();
 }

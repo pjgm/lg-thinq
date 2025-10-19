@@ -1,13 +1,13 @@
 ﻿namespace ThinQ.Models;
 
-public class RouteResponse
+public class RouteResponse : BaseApiResponse
 {
-    public string resultCode { get; set; }
-    public RouteResult result { get; set; }
+    public RouteResponseEndpointsResult Response { get; set; }
 }
 
-public class RouteResult
+public class RouteResponseEndpointsResult
 {
-    public string apiServer { get; set; }
-    public string mqttServer { get; set; }
+    public Uri ApiServer { get; set; }
+    public Uri MqttServer { get; set; }
+    public Uri WebSocketServer { get; set; }
 }

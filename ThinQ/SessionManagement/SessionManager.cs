@@ -5,18 +5,7 @@ using ThinQ.Services;
 
 namespace ThinQ.SessionManagement;
 
-public record Session(
-    UserProfileResponse Profile,
-    Oauth2Response Oauth2,
-    string CountryCode,
-    string LanguageCode,
-    string ClientId,
-    Uri ThinQUri)
-{
-    public string AccessToken => Oauth2.access_token;
-    public string RefreshToken => Oauth2.refresh_token;
-    public string UserNo => Profile.account.userNo;
-}
+public record Session(string PersonalAccessToken, string CountryCode, Uri ThinqApiUri);
 public class SessionManager(IUserConfigReader userConfigReader)
 {
     private const string SessionFilename = "session.json";
@@ -29,22 +18,14 @@ public class SessionManager(IUserConfigReader userConfigReader)
         }
 
         var userConfig = new UserConfig(
-            userConfigReader.ReadUsername(),
-            userConfigReader.ReadPassword(),
             userConfigReader.ReadCountryCode(),
-            userConfigReader.ReadLanguageCode(),
-            Guid.NewGuid().ToString());
+            userConfigReader.ReadPersonalAccessToken());
 
-        var gatewayService = new GatewayService(new HttpClient(), userConfig);
-        var gatewayResponse = await gatewayService.GetGateway();
+        var routeService = new RouteService(userConfig.PersonalAccessToken, userConfig.CountryCode);
+        var routeResponse = await routeService.GetRoute();
 
-        var domains = new Domains(
-            gatewayResponse.Result.EmpSpxUri,
-            gatewayResponse.Result.EmpTermsUri,
-            gatewayResponse.Result.Thinq2Uri);
-
-        var authenticationFlowService = new AuthenticationFlowService(domains);
-        var session =  await authenticationFlowService.LoginFlow(userConfig);
+        var session = new Session(userConfig.PersonalAccessToken, userConfig.CountryCode,
+            routeResponse.Response.ApiServer);
         SaveToDisk(session);
         return session;
     }

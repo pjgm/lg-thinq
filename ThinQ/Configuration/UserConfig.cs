@@ -1,8 +1,5 @@
 ﻿namespace ThinQ.Configuration;
 
 public record UserConfig(
-    string Username,
-    string Password,
-    string CountryCode,
-    string LanguageCode,
-    string ClientId);
+    string CountryCode, // ISO 3166-1 alpha-2
+    string PersonalAccessToken);

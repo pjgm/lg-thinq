@@ -6,7 +6,7 @@ namespace ThinQ.Cli.Ui;
 
 internal static class AcConsoleInterface
 {
-    internal static void RenderDeviceInfo(DevicesResult devices)
+    internal static void RenderDeviceInfo(Device[] deviceList)
     {
         var table = new Table
         {
@@ -15,30 +15,30 @@ internal static class AcConsoleInterface
 
         table.AddColumn("Name");
         table.AddColumn("Id");
-        table.AddColumn("Status");
-        table.AddColumn("Current temperature");
-        table.AddColumn("Target temperature");
+        //table.AddColumn("Status");
+        //table.AddColumn("Current temperature");
+        //table.AddColumn("Target temperature");
 
-        foreach (var device in devices.item)
+        foreach (var device in deviceList)
         {
             table.AddRow(
-                device.alias,
-                device.deviceId,
-                device.snapshot.airState_operation.ToString(CultureInfo.InvariantCulture) == "1" ? "On" : "Off",
-                device.snapshot.airState_tempState_current.ToString(CultureInfo.InvariantCulture),
-                device.snapshot.airState_tempState_target.ToString(CultureInfo.InvariantCulture));
+                device.DeviceInfo.Alias,
+                device.DeviceId);
+            //device.snapshot.airState_operation.ToString(CultureInfo.InvariantCulture) == "1" ? "On" : "Off",
+            //device.snapshot.airState_tempState_current.ToString(CultureInfo.InvariantCulture),
+            //device.snapshot.airState_tempState_target.ToString(CultureInfo.InvariantCulture));
         }
         AnsiConsole.Write(table);
     }
 
-    internal static (string deviceId, string deviceAlias) SelectUnit(DevicesResult devices)
+    internal static (string deviceId, string deviceAlias) SelectUnit(Device[] devices)
     {
         var deviceAlias =  AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Choose an AC unit")
-                .AddChoices(devices.item.Select(x => x.alias).ToList()));
+                .AddChoices(devices.Select(x => x.DeviceInfo.Alias).ToList()));
 
-        return (devices.item.First(x => x.alias == deviceAlias).deviceId, deviceAlias);
+        return (devices.First(x => x.DeviceInfo.Alias == deviceAlias).DeviceId, deviceAlias);
     }
 
     internal static Operation SelectOperation(string deviceAlias)
